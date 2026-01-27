@@ -1,6 +1,8 @@
-from PyQt5 import QtWidgets, QtCore
-import pyqtgraph as pg
 import sys
+
+import pyqtgraph as pg
+from PyQt5 import QtCore, QtWidgets
+
 from pdfbl.Interface import FitRunner
 
 
