@@ -1,2 +1,5 @@
 numpy
 diffpy.cmi
+scipy
+psutil
+matplotlib
