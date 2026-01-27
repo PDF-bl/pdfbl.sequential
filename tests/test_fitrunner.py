@@ -4,7 +4,7 @@ from pathlib import Path
 
 from scipy.optimize import least_squares
 
-from pdfbl.Interface import FitDAG, FitRunner, PDFAdapter
+from pdfbl.interface import FitDAG, FitRunner, PDFAdapter
 
 sys.path.append(str(Path(__file__).parent / "diffpycmi_scripts.py"))
 from diffpycmi_scripts import make_recipe  # noqa: E402

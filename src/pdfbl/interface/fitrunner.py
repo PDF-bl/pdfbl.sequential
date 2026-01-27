@@ -5,7 +5,7 @@ import uuid
 import warnings
 from collections import OrderedDict, defaultdict
 
-from pdfbl.Interface import FitDAG
+from pdfbl.interface import FitDAG
 
 
 class FitRunner:
