@@ -1,2 +1,4 @@
 numpy
 diffpy.cmi
+pyqt5
+pyqtgraph
