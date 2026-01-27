@@ -5,7 +5,7 @@ from pathlib import Path
 
 import networkx as nx
 
-from pdfbl.Interface import FitDAG, FitPlotter, FitRunner, PDFAdapter
+from pdfbl.interface import FitDAG, FitPlotter, FitRunner, PDFAdapter
 
 
 class PDFSequentialFit:
