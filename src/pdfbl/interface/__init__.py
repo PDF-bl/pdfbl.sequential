@@ -1,2 +1,2 @@
 __all__ = ["PDFAdapter"]
-from pdfbl.interface.PDFAdapter import PDFAdapter
+from pdfbl.interface.pdfadapter import PDFAdapter

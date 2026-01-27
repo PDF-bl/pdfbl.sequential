@@ -1,7 +1,7 @@
 from pathlib import Path
 from unittest import TestCase
 
-from pdfbl.Interface import PDFAdapter
+from pdfbl.interface import PDFAdapter
 
 
 class TestPDFAdapter(TestCase):
