@@ -12,7 +12,7 @@
 # See LICENSE.rst for license information.
 #
 ##############################################################################
-"""Automated sequential refinements of PDF data"""
+"""Automated sequential refinements of PDF data."""
 
 # package version
 from pdfbl.sequential.version import __version__  # noqa

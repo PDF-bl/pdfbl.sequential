@@ -1,7 +1,8 @@
-import networkx as nx
-import uuid
-from networkx.readwrite.json_graph import node_link_data
 import json
+import uuid
+
+import networkx as nx
+from networkx.readwrite.json_graph import node_link_data
 
 
 class FitDAG(nx.DiGraph):
@@ -78,8 +79,8 @@ class FitDAG(nx.DiGraph):
             self.name_to_id[node_content["name"]] = node_id
 
     def furnish_node_dict(self, node_dict):
-        """Make the arbitrary node dictionary conform to the default node
-        template."""
+        """Make the arbitrary node dictionary conform to the default
+        node template."""
         template_node = self.default_node
         node_dict = {
             key: (
@@ -98,8 +99,8 @@ class FitDAG(nx.DiGraph):
         return node_dict
 
     def furnish_edge_dict(self, edge_dict):
-        """Make the arbitrary edge dictionary conform to the default edge
-        template."""
+        """Make the arbitrary edge dictionary conform to the default
+        edge template."""
         template_edge = self.default_edge
         edge_dict = {
             key: (

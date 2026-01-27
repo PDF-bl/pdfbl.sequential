@@ -1,8 +1,10 @@
-import unittest
 import tempfile
+import unittest
 from pathlib import Path
+
 import networkx as nx
-from pdfbl.Interface.FitDAG import FitDAG
+
+from pdfbl.interface import FitDAG
 
 
 class TestFitDAG(unittest.TestCase):
