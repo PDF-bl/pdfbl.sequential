@@ -363,7 +363,6 @@ class SequentialCMIRunner:
         self.input_files_running = []
 
     def run(self, mode: Literal["batch", "stream"]):
-
         if mode == "batch":
             self.run_one_cycle()
         elif mode == "stream":
