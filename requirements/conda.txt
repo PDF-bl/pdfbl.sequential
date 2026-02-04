@@ -5,3 +5,4 @@ prompt_toolkit
 matplotlib
 bg-mpl-stylesheets
 psutil
+argparse
