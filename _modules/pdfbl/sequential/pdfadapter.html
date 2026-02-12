@@ -1,0 +1,587 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pdfbl.sequential.pdfadapter &mdash; pdfbl.sequential 0.1.0rc0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=9205c5d6"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../../../_static/copybutton.js?v=cca77546"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            pdfbl.sequential
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/pdfbl.sequential.html">Package API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../release.html">Release notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pdfbl.sequential</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">pdfbl.sequential.pdfadapter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for pdfbl.sequential.pdfadapter</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">queue</span><span class="w"> </span><span class="kn">import</span> <span class="n">Queue</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">diffpy.srfit.fitbase</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">FitContribution</span><span class="p">,</span>
+    <span class="n">FitRecipe</span><span class="p">,</span>
+    <span class="n">FitResults</span><span class="p">,</span>
+    <span class="n">Profile</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">diffpy.srfit.pdf</span><span class="w"> </span><span class="kn">import</span> <span class="n">PDFGenerator</span><span class="p">,</span> <span class="n">PDFParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">diffpy.srfit.structure</span><span class="w"> </span><span class="kn">import</span> <span class="n">constrainAsSpaceGroup</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">diffpy.structure.parsers</span><span class="w"> </span><span class="kn">import</span> <span class="n">getParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">least_squares</span>
+
+
+<div class="viewcode-block" id="PDFAdapter">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PDFAdapter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Adapter to expose PDF fitting interface. Designed to provide a</span>
+<span class="sd">    simplified PDF fitting interface for human users and AI agents.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    recipe : FitRecipe</span>
+<span class="sd">        The FitRecipe object managing the fitting process.</span>
+
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    initialize_profile(profile_path, qmin=None, qmax=None, xmin=None, xmax=None, dx=None)</span>
+<span class="sd">        Load and initialize the PDF profile from the given file path with</span>
+<span class="sd">        some optional parameters.</span>
+<span class="sd">    initialize_structures(structure_paths : list[str], run_parallel=True)</span>
+<span class="sd">        Load and initialize the structures from the given file paths, and</span>
+<span class="sd">        generate corresponding PDFGenerator objects.</span>
+<span class="sd">    initialize_contribution(equation_string=None)</span>
+<span class="sd">        Initialize the FitContribution object combining the PDF generators and</span>
+<span class="sd">        the profile.</span>
+<span class="sd">    initialize_recipe()</span>
+<span class="sd">        Initialize the FitRecipe object for the fitting process.</span>
+<span class="sd">    set_initial_variable_values(variable_name_to_value : dict)</span>
+<span class="sd">        Update parameter values from the provided dictionary.</span>
+<span class="sd">    refine_variables(variable_names: list[str])</span>
+<span class="sd">        Refine the parameters specified in the list and in that order.</span>
+<span class="sd">    get_variable_names()</span>
+<span class="sd">        Get the names of all variables in the recipe.</span>
+<span class="sd">    save_results(mode: str, filename: str=None)</span>
+<span class="sd">        Save the fitting results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intermediate_results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iter_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="PDFAdapter.monitor_intermediate_results">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.monitor_intermediate_results">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">monitor_intermediate_results</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">queue</span><span class="p">:</span> <span class="n">Queue</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Store an intermediate result during the fitting process.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            The key to identify the intermediate result.</span>
+<span class="sd">        step : int</span>
+<span class="sd">            The step interval to store the intermediate result.</span>
+<span class="sd">        queue : Queue</span>
+<span class="sd">            The queue to store the intermediate results.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">queue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">queue</span> <span class="o">=</span> <span class="n">Queue</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intermediate_results</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">step</span><span class="p">)]</span> <span class="o">=</span> <span class="n">queue</span></div>
+
+
+<div class="viewcode-block" id="PDFAdapter.initialize_profile">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.initialize_profile">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_profile</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">profile_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">qmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">qmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">xmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">xmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load and initialize the PDF profile from the given file path</span>
+<span class="sd">        with some optional parameters.</span>
+
+<span class="sd">        The target output, FitRecipe, requires a profile object, multiple</span>
+<span class="sd">        PDFGenerator objects, and a FitContribution object combining them. This</span>
+<span class="sd">        method initializes the profile object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        profile_path : str</span>
+<span class="sd">            The path to the experimental PDF profile file.</span>
+<span class="sd">        qmin : float</span>
+<span class="sd">            The minimum Q value for PDF calculation. The default value is</span>
+<span class="sd">            the one parsed from the profile file.</span>
+<span class="sd">        qmax : float</span>
+<span class="sd">            The maximum Q value for PDF calculation. The default value is the</span>
+<span class="sd">            one parsed from the profile file.</span>
+<span class="sd">        xmin : float</span>
+<span class="sd">            The minimum r value for PDF calculation. The default value is the</span>
+<span class="sd">            one parsed from the profile file.</span>
+<span class="sd">        xmax : float</span>
+<span class="sd">            The maximum r value for PDF calculation. The default value is the</span>
+<span class="sd">            one parsed from the profile file.</span>
+<span class="sd">        dx : float</span>
+<span class="sd">            The r step size for PDF calculation. The default value is the</span>
+<span class="sd">            one parsed from the profile file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">profile</span> <span class="o">=</span> <span class="n">Profile</span><span class="p">()</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">PDFParser</span><span class="p">()</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">profile_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+        <span class="n">profile</span><span class="o">.</span><span class="n">loadParsedData</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">qmin</span><span class="p">:</span>
+            <span class="n">profile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;qmin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qmin</span>
+        <span class="k">if</span> <span class="n">qmax</span><span class="p">:</span>
+            <span class="n">profile</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s2">&quot;qmax&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">qmax</span>
+        <span class="n">profile</span><span class="o">.</span><span class="n">setCalculationRange</span><span class="p">(</span><span class="n">xmin</span><span class="o">=</span><span class="n">xmin</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="n">xmax</span><span class="p">,</span> <span class="n">dx</span><span class="o">=</span><span class="n">dx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">profile</span> <span class="o">=</span> <span class="n">profile</span></div>
+
+
+<div class="viewcode-block" id="PDFAdapter.initialize_structures">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.initialize_structures">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_structures</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">structure_paths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">run_parallel</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load and initialize the structures from the given file paths,</span>
+<span class="sd">        and generate corresponding PDFGenerator objects.</span>
+
+<span class="sd">        The target output, FitRecipe, requires a profile object, multiple</span>
+<span class="sd">        PDFGenerator objects, and a FitContribution object combining them. This</span>
+<span class="sd">        method creates the PDFGenerator objects from the structure files.</span>
+
+<span class="sd">        Must be called after initialize_profile.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        structure_paths : list of str</span>
+<span class="sd">            The list of paths to the structure files (CIF format).</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Planned features:</span>
+<span class="sd">            - Support cif file manipulation.</span>
+<span class="sd">                - Add/Remove atoms.</span>
+<span class="sd">                - symmetry operations?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">structure_paths</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">structure_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">structure_paths</span><span class="p">]</span>
+        <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">spacegroups</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pdfgenerators</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">run_parallel</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
+                <span class="kn">from</span><span class="w"> </span><span class="nn">multiprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pool</span>
+
+                <span class="kn">import</span><span class="w"> </span><span class="nn">psutil</span>
+
+                <span class="n">syst_cores</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+                <span class="n">cpu_percent</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">cpu_percent</span><span class="p">()</span>
+                <span class="n">avail_cores</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span>
+                    <span class="p">(</span><span class="mi">100</span> <span class="o">-</span> <span class="n">cpu_percent</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">100.0</span> <span class="o">/</span> <span class="n">syst_cores</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">ncpu</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">max</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">avail_cores</span><span class="p">]))</span>
+                <span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">ncpu</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pool</span> <span class="o">=</span> <span class="n">pool</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">You don&#39;t appear to have the necessary packages for &quot;</span>
+                    <span class="s2">&quot;parallelization. Proceeding without parallelization.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">run_parallel</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">structure_path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure_paths</span><span class="p">):</span>
+            <span class="n">stru_parser</span> <span class="o">=</span> <span class="n">getParser</span><span class="p">(</span><span class="s2">&quot;cif&quot;</span><span class="p">)</span>
+            <span class="n">structure</span> <span class="o">=</span> <span class="n">stru_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">structure_path</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+            <span class="n">sg</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">stru_parser</span><span class="p">,</span> <span class="s2">&quot;spacegroup&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">spacegroup</span> <span class="o">=</span> <span class="n">sg</span><span class="o">.</span><span class="n">short_name</span> <span class="k">if</span> <span class="n">sg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;P1&quot;</span>
+            <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+            <span class="n">spacegroups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">spacegroup</span><span class="p">)</span>
+            <span class="n">pdfgenerator</span> <span class="o">=</span> <span class="n">PDFGenerator</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;G</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">pdfgenerator</span><span class="o">.</span><span class="n">setStructure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">run_parallel</span><span class="p">:</span>
+                <span class="n">pdfgenerator</span><span class="o">.</span><span class="n">parallel</span><span class="p">(</span><span class="n">ncpu</span><span class="o">=</span><span class="n">ncpu</span><span class="p">,</span> <span class="n">mapfunc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pool</span><span class="o">.</span><span class="n">map</span><span class="p">)</span>
+            <span class="n">pdfgenerators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pdfgenerator</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spacegroups</span> <span class="o">=</span> <span class="n">spacegroups</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pdfgenerators</span> <span class="o">=</span> <span class="n">pdfgenerators</span></div>
+
+
+<div class="viewcode-block" id="PDFAdapter.initialize_contribution">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.initialize_contribution">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_contribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">equation_string</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the FitContribution object combining the PDF</span>
+<span class="sd">        generators and the profile.</span>
+
+<span class="sd">        The target output, FitRecipe, requires a profile object, multiple</span>
+<span class="sd">        PDFGenerator objects, and a FitContribution object combining them. This</span>
+<span class="sd">        method creates the FitContribution object combining the profile and PDF</span>
+<span class="sd">        generators.</span>
+
+<span class="sd">        Must be called after initialize_profile and initialize_structures.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        equation_string : str</span>
+<span class="sd">            The equation string defining the contribution. The default</span>
+<span class="sd">            equation will be generated based on the number of phases.</span>
+<span class="sd">            e.g.</span>
+<span class="sd">            for one phase: &quot;s0*G1&quot;,</span>
+<span class="sd">            for two phases: &quot;s0*(s1*G1+(1-s1)*G2)&quot;,</span>
+<span class="sd">            for three phases: &quot;s0*(s1*G1+s2*G2+(1-(s1+s2))*G3)&quot;,</span>
+<span class="sd">            ...</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Planned features:</span>
+<span class="sd">            - Support registerFunction for custom equations.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contribution</span> <span class="o">=</span> <span class="n">FitContribution</span><span class="p">(</span><span class="s2">&quot;pdfcontribution&quot;</span><span class="p">)</span>
+        <span class="n">contribution</span><span class="o">.</span><span class="n">setProfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">profile</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pdfgenerator</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdfgenerators</span><span class="p">:</span>
+            <span class="n">contribution</span><span class="o">.</span><span class="n">addProfileGenerator</span><span class="p">(</span><span class="n">pdfgenerator</span><span class="p">)</span>
+        <span class="n">number_of_phase</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdfgenerators</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">equation_string</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">number_of_phase</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">equation_string</span> <span class="o">=</span> <span class="s2">&quot;s0*G1&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">equation_string</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">&quot;s0*(&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot;+&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;s</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">*G</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">number_of_phase</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)]</span>
+                    <span class="p">)</span>
+                    <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;+(1-(</span><span class="si">{</span><span class="s1">&#39;+&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">&#39;s</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s1">&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">number_of_phase</span><span class="p">)])</span><span class="si">}</span><span class="s2">))*G</span><span class="si">{</span><span class="n">number_of_phase</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># noqa: E501</span>
+                    <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+                <span class="p">)</span>
+        <span class="n">contribution</span><span class="o">.</span><span class="n">setEquation</span><span class="p">(</span><span class="n">equation_string</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contribution</span> <span class="o">=</span> <span class="n">contribution</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">contribution</span></div>
+
+
+<div class="viewcode-block" id="PDFAdapter.initialize_recipe">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.initialize_recipe">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">initialize_recipe</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the FitRecipe object for the fitting process.</span>
+
+<span class="sd">        The target output, FitRecipe, requires a profile object, multiple</span>
+<span class="sd">        PDFGenerator objects, and a FitContribution object combining them. This</span>
+<span class="sd">        method creates the FitRecipe object combining the profile, PDF</span>
+<span class="sd">        generators, and contribution.</span>
+
+<span class="sd">        Must be called after initialize_contribution.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Planned features:</span>
+<span class="sd">            - support instructions to</span>
+<span class="sd">                - add variables</span>
+<span class="sd">                - constrain variables of the scatters</span>
+<span class="sd">                - change symmetry constraints</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">recipe</span> <span class="o">=</span> <span class="n">FitRecipe</span><span class="p">()</span>
+        <span class="n">recipe</span><span class="o">.</span><span class="n">addContribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contribution</span><span class="p">)</span>
+        <span class="n">qdamp</span> <span class="o">=</span> <span class="n">recipe</span><span class="o">.</span><span class="n">newVar</span><span class="p">(</span><span class="s2">&quot;qdamp&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.04</span><span class="p">)</span>
+        <span class="n">qbroad</span> <span class="o">=</span> <span class="n">recipe</span><span class="o">.</span><span class="n">newVar</span><span class="p">(</span><span class="s2">&quot;qbroad&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.02</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">pdfgenerator</span><span class="p">,</span> <span class="n">spacegroup</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+            <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdfgenerators</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">spacegroups</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">for</span> <span class="n">pname</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s2">&quot;delta1&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;delta2&quot;</span><span class="p">,</span>
+            <span class="p">]:</span>
+                <span class="n">par</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pdfgenerator</span><span class="p">,</span> <span class="n">pname</span><span class="p">)</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">pname</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdfgenerators</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span>
+                    <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contribution</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;s</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
+                    <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;s</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">restrain</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">lb</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+            <span class="n">recipe</span><span class="o">.</span><span class="n">constrain</span><span class="p">(</span><span class="n">pdfgenerator</span><span class="o">.</span><span class="n">qdamp</span><span class="p">,</span> <span class="n">qdamp</span><span class="p">)</span>
+            <span class="n">recipe</span><span class="o">.</span><span class="n">constrain</span><span class="p">(</span><span class="n">pdfgenerator</span><span class="o">.</span><span class="n">qbroad</span><span class="p">,</span> <span class="n">qbroad</span><span class="p">)</span>
+            <span class="n">stru_parset</span> <span class="o">=</span> <span class="n">pdfgenerator</span><span class="o">.</span><span class="n">phase</span>
+            <span class="n">spacegroupparams</span> <span class="o">=</span> <span class="n">constrainAsSpaceGroup</span><span class="p">(</span><span class="n">stru_parset</span><span class="p">,</span> <span class="n">spacegroup</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">spacegroupparams</span><span class="o">.</span><span class="n">xyzpars</span><span class="p">:</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">spacegroupparams</span><span class="o">.</span><span class="n">latpars</span><span class="p">:</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">spacegroupparams</span><span class="o">.</span><span class="n">adppars</span><span class="p">:</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contribution</span><span class="o">.</span><span class="n">s0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;s0&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">recipe</span><span class="o">.</span><span class="n">fix</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+        <span class="n">recipe</span><span class="o">.</span><span class="n">fithooks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recipe</span> <span class="o">=</span> <span class="n">recipe</span></div>
+
+
+<div class="viewcode-block" id="PDFAdapter.set_initial_variable_values">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.set_initial_variable_values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_initial_variable_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_name_to_value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update parameter values from the provided dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        variable_name_to_value : dict</span>
+<span class="sd">            A dictionary mapping variable names to their new values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">vname</span><span class="p">,</span> <span class="n">vvalue</span> <span class="ow">in</span> <span class="n">variable_name_to_value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="o">.</span><span class="n">_parameters</span><span class="p">[</span><span class="n">vname</span><span class="p">]</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">vvalue</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PDFAdapter.residual">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.residual">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="p">[]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Wrapper for the recipe residual function to store</span>
+<span class="sd">        intermediate results if needed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        p : list</span>
+<span class="sd">            List of parameter values.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray</span>
+<span class="sd">            The residual array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="o">.</span><span class="n">residual</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intermediate_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fitresults</span> <span class="o">=</span> <span class="n">FitResults</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">step</span><span class="p">),</span> <span class="n">values</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">intermediate_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iter_count</span> <span class="o">%</span> <span class="n">step</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fitresults</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iter_count</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">residual</span></div>
+
+
+<div class="viewcode-block" id="PDFAdapter.refine_variables">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.refine_variables">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">refine_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variable_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Refine the parameters specified in the list and in that</span>
+<span class="sd">        order. Must be called after initialize_recipe.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        variable_names : list of str</span>
+<span class="sd">            The names of the variables to refine.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">vname</span> <span class="ow">in</span> <span class="n">variable_names</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">vname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="o">.</span><span class="n">_parameters</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Variable </span><span class="si">{</span><span class="n">vname</span><span class="si">}</span><span class="s2"> not found in the recipe. &quot;</span>
+                    <span class="s2">&quot;Please choose from the existing variables: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+        <span class="k">for</span> <span class="n">vname</span> <span class="ow">in</span> <span class="n">variable_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="o">.</span><span class="n">free</span><span class="p">(</span><span class="n">vname</span><span class="p">)</span>
+            <span class="n">least_squares</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">residual</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                <span class="n">x_scale</span><span class="o">=</span><span class="s2">&quot;jac&quot;</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PDFAdapter.get_variable_names">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.get_variable_names">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_variable_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the names of all variables in the recipe.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list of str</span>
+<span class="sd">            A list of variable names.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="PDFAdapter.save_results">
+<a class="viewcode-back" href="../../../api/pdfbl.sequential.html#pdfbl.sequential.pdfadapter.PDFAdapter.save_results">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_results</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="s2">&quot;dict&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save the fitting results. Must be called after</span>
+<span class="sd">        refine_variables.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mode : str</span>
+<span class="sd">            The format to save the results. Options are:</span>
+<span class="sd">                &quot;str&quot; - Save results as a formatted text string.</span>
+<span class="sd">                &quot;dict&quot; - Save results as a JSON-compatible dictionary.</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            The path to the output file. If None, results will not be saved to</span>
+<span class="sd">            a file.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str or dict</span>
+<span class="sd">            The fitting results in the specified format.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fit_results</span> <span class="o">=</span> <span class="n">FitResults</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;str&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">tmp_directory</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span>
+                <span class="n">temp_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp_directory</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;data.txt&quot;</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">temp_file</span><span class="p">)</span>
+            <span class="n">fit_results</span><span class="o">.</span><span class="n">saveResults</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">results_str</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">tmp_directory</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">results_str</span>
+
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;dict&quot;</span><span class="p">:</span>
+            <span class="n">results_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;residual&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">residual</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;contributions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">fit_results</span><span class="o">.</span><span class="n">residual</span> <span class="o">-</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">penalty</span>
+            <span class="p">)</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;restraints&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">penalty</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;chi2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">chi2</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;reduced_chi2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">rchi2</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;rw&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">rw</span>
+            <span class="c1"># variables</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">unc</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                <span class="n">fit_results</span><span class="o">.</span><span class="n">varnames</span><span class="p">,</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">varvals</span><span class="p">,</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">varunc</span>
+            <span class="p">):</span>
+                <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">val</span><span class="p">,</span>
+                    <span class="s2">&quot;uncertainty&quot;</span><span class="p">:</span> <span class="n">unc</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="c1"># fixed variables</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;fixed_variables&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">fixednames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="n">fit_results</span><span class="o">.</span><span class="n">fixednames</span><span class="p">,</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">fixedvals</span>
+                <span class="p">):</span>
+                    <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;fixed_variables&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">val</span><span class="p">}</span>
+            <span class="c1"># constraints</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;constraints&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">connames</span> <span class="ow">and</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">showcon</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">conresults</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">loc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">conlocs</span><span class="p">):</span>
+                        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">loc</span><span class="p">]</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">convals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">unc</span> <span class="o">=</span> <span class="n">con</span><span class="o">.</span><span class="n">conuncs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;constraints&quot;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                            <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">val</span><span class="p">,</span>
+                            <span class="s2">&quot;uncertainty&quot;</span><span class="p">:</span> <span class="n">unc</span><span class="p">,</span>
+                        <span class="p">}</span>
+            <span class="c1"># covariance matrix</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;covariance_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">cov</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="c1"># certainty</span>
+            <span class="n">certain</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">con</span> <span class="ow">in</span> <span class="n">fit_results</span><span class="o">.</span><span class="n">conresults</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">con</span><span class="o">.</span><span class="n">dy</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="n">certain</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s2">&quot;certain&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">certain</span>
+            <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">results_dict</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">results_dict</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unsupported mode: </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">. Please use &#39;json&#39; or &#39;txt&#39;.&quot;</span>
+            <span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Simon Billinge.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

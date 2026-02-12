@@ -1,0 +1,520 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pdfbl.sequential package &mdash; pdfbl.sequential 0.1.0rc0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=9205c5d6"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="../_static/copybutton.js?v=cca77546"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release notes" href="../release.html" />
+    <link rel="prev" title="Getting started" href="../getting-started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            pdfbl.sequential
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Package API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pdfbl-sequential-pdfadapter-module">pdfbl.sequential.pdfadapter module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pdfbl-sequential-sequential-cmi-runner-module">pdfbl.sequential.sequential_cmi_runner module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../release.html">Release notes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pdfbl.sequential</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">pdfbl.sequential package</li>
+      <li class="wy-breadcrumbs-aside">
+              <a href="https://github.com/pdf-bl/pdfbl.sequential/blob/main/docs/source/api/pdfbl.sequential.rst" class="fa fa-github"> Edit on GitHub</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="title">
+<h1>pdfbl.sequential package<a class="headerlink" href="#title" title="Link to this heading"></a></h1>
+<p id="module-pdfbl.sequential">Automated sequential refinements of PDF data.</p>
+<section id="pdfbl-sequential-pdfadapter-module">
+<h2>pdfbl.sequential.pdfadapter module<a class="headerlink" href="#pdfbl-sequential-pdfadapter-module" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pdfbl.sequential.pdfadapter.</span></span><span class="sig-name descname"><span class="pre">PDFAdapter</span></span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Adapter to expose PDF fitting interface. Designed to provide a
+simplified PDF fitting interface for human users and AI agents.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">recipe</span></span></dt>
+<dd><p>The FitRecipe object managing the fitting process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>FitRecipe</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">initialize_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profile_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.initialize_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Load and initialize the PDF profile from the given file path with
+some optional parameters.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">initialize_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.initialize_structures"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Load and initialize the structures from the given file paths, and
+generate corresponding PDFGenerator objects.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">initialize_contribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">equation_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.initialize_contribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Initialize the FitContribution object combining the PDF generators and
+the profile.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">initialize_recipe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.initialize_recipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Initialize the FitRecipe object for the fitting process.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">set_initial_variable_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable_name_to_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.set_initial_variable_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Update parameter values from the provided dictionary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">refine_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.refine_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Refine the parameters specified in the list and in that order.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_variable_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.get_variable_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get the names of all variables in the recipe.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">save_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.save_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Save the fitting results.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_variable_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.get_variable_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Get the names of all variables in the recipe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of variable names.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">initialize_contribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">equation_string</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.initialize_contribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Initialize the FitContribution object combining the PDF
+generators and the profile.</p>
+<p>The target output, FitRecipe, requires a profile object, multiple
+PDFGenerator objects, and a FitContribution object combining them. This
+method creates the FitContribution object combining the profile and PDF
+generators.</p>
+<p>Must be called after initialize_profile and initialize_structures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>equation_string</strong> (<em>str</em>) – The equation string defining the contribution. The default
+equation will be generated based on the number of phases.
+e.g.
+for one phase: “s0*G1”,
+for two phases: “s0*(s1*G1+(1-s1)*G2)”,
+for three phases: “s0*(s1*G1+s2*G2+(1-(s1+s2))*G3)”,
+…</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<dl class="simple">
+<dt>Planned features:</dt><dd><ul class="simple">
+<li><p>Support registerFunction for custom equations.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">initialize_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">profile_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.initialize_profile"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Load and initialize the PDF profile from the given file path
+with some optional parameters.</p>
+<p>The target output, FitRecipe, requires a profile object, multiple
+PDFGenerator objects, and a FitContribution object combining them. This
+method initializes the profile object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>profile_path</strong> (<em>str</em>) – The path to the experimental PDF profile file.</p></li>
+<li><p><strong>qmin</strong> (<em>float</em>) – The minimum Q value for PDF calculation. The default value is
+the one parsed from the profile file.</p></li>
+<li><p><strong>qmax</strong> (<em>float</em>) – The maximum Q value for PDF calculation. The default value is the
+one parsed from the profile file.</p></li>
+<li><p><strong>xmin</strong> (<em>float</em>) – The minimum r value for PDF calculation. The default value is the
+one parsed from the profile file.</p></li>
+<li><p><strong>xmax</strong> (<em>float</em>) – The maximum r value for PDF calculation. The default value is the
+one parsed from the profile file.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – The r step size for PDF calculation. The default value is the
+one parsed from the profile file.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">initialize_recipe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.initialize_recipe"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Initialize the FitRecipe object for the fitting process.</p>
+<p>The target output, FitRecipe, requires a profile object, multiple
+PDFGenerator objects, and a FitContribution object combining them. This
+method creates the FitRecipe object combining the profile, PDF
+generators, and contribution.</p>
+<p>Must be called after initialize_contribution.</p>
+<p class="rubric">Notes</p>
+<dl class="simple">
+<dt>Planned features:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>support instructions to</dt><dd><ul>
+<li><p>add variables</p></li>
+<li><p>constrain variables of the scatters</p></li>
+<li><p>change symmetry constraints</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">initialize_structures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure_paths</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run_parallel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.initialize_structures"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Load and initialize the structures from the given file paths,
+and generate corresponding PDFGenerator objects.</p>
+<p>The target output, FitRecipe, requires a profile object, multiple
+PDFGenerator objects, and a FitContribution object combining them. This
+method creates the PDFGenerator objects from the structure files.</p>
+<p>Must be called after initialize_profile.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>structure_paths</strong> (<em>list</em><em> of </em><em>str</em>) – The list of paths to the structure files (CIF format).</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<dl class="simple">
+<dt>Planned features:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>Support cif file manipulation.</dt><dd><ul>
+<li><p>Add/Remove atoms.</p></li>
+<li><p>symmetry operations?</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">monitor_intermediate_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queue</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Queue</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.monitor_intermediate_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Store an intermediate result during the fitting process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – The key to identify the intermediate result.</p></li>
+<li><p><strong>step</strong> (<em>int</em>) – The step interval to store the intermediate result.</p></li>
+<li><p><strong>queue</strong> (<em>Queue</em>) – The queue to store the intermediate results.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">refine_variables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.refine_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Refine the parameters specified in the list and in that
+order. Must be called after initialize_recipe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>variable_names</strong> (<em>list</em><em> of </em><em>str</em>) – The names of the variables to refine.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">residual</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.residual"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Wrapper for the recipe residual function to store
+intermediate results if needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>p</strong> (<em>list</em>) – List of parameter values.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The residual array.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">save_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'str'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'dict'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'str'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.save_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Save the fitting results. Must be called after
+refine_variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<em>str</em>) – <dl class="simple">
+<dt>The format to save the results. Options are:</dt><dd><p>”str” - Save results as a formatted text string.
+“dict” - Save results as a JSON-compatible dictionary.</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – The path to the output file. If None, results will not be saved to
+a file.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The fitting results in the specified format.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">set_initial_variable_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">variable_name_to_value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/pdfadapter.html#PDFAdapter.set_initial_variable_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Update parameter values from the provided dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>variable_name_to_value</strong> (<em>dict</em>) – A dictionary mapping variable names to their new values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="pdfbl-sequential-sequential-cmi-runner-module">
+<h2>pdfbl.sequential.sequential_cmi_runner module<a class="headerlink" href="#pdfbl-sequential-sequential-cmi-runner-module" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">pdfbl.sequential.sequential_cmi_runner.</span></span><span class="sig-name descname"><span class="pre">SequentialCMIRunner</span></span><a class="reference internal" href="../_modules/pdfbl/sequential/sequential_cmi_runner.html#SequentialCMIRunner"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">load_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_data_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_result_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'results'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename_order_pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'(\\d+)K\\.gr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whether_plot_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">whether_plot_ycalc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_variable_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_result_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot_intermediate_result_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">refinable_variable_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_variable_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_plot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/sequential_cmi_runner.html#SequentialCMIRunner.load_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Load and validate input configuration for sequential PDF
+refinement.</p>
+<p>This method initializes the sequential CMI runner with input data,
+structure information, and refinement parameters, and the plotting
+configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_data_dir</strong> (<em>str</em>) – The path to the directory containing input PDF profile files.</p></li>
+<li><p><strong>structure_path</strong> (<em>str</em>) – The path to the structure file (e.g., CIF format) used for
+refinement.</p></li>
+<li><p><strong>output_result_dir</strong> (<em>str</em>) – The path to the directory for storing refinement results.
+Default is “results”.</p></li>
+<li><p><strong>filename_order_pattern</strong> (<em>str</em>) – The regular expression pattern to extract ordering information
+from filenames.
+Default is r”(d+)K.gr” to extract temperature values from
+filenames.</p></li>
+<li><p><strong>refinable_variable_names</strong> (<em>list</em><em> of </em><em>str</em>) – The list of variable names to refine.
+Must exist in the recipe.
+Default variable names are all possible variables that can
+be created from the input structure and profile.</p></li>
+<li><p><strong>initial_variable_values</strong> (<em>dict</em>) – The dictionary mapping variable names to their initial values.
+Default is None.</p></li>
+<li><p><strong>xmin</strong> (<em>float</em>) – The minimum x-value for the PDF profile.
+Default is the value parsed from the input file.</p></li>
+<li><p><strong>xmax</strong> (<em>float</em>) – The maximum x-value for the PDF profile.
+Default is the value parsed from the input file.</p></li>
+<li><p><strong>dx</strong> (<em>float</em>) – The step size for the PDF profile.
+Default is the value parsed from the input file.</p></li>
+<li><p><strong>qmin</strong> (<em>float</em>) – The minimum q-value for the PDF profile.
+Default is the value parsed from the input file.</p></li>
+<li><p><strong>qmax</strong> (<em>float</em>) – The maximum q-value for the PDF profile.
+Default is the value parsed from the input file.</p></li>
+<li><p><strong>show_plot</strong> (<em>bool</em>) – Whether to display plots during refinement. Default is True.</p></li>
+<li><p><strong>whether_plot_y</strong> (<em>bool</em>) – Whether to plot the experimental PDF data (y). Default is False.</p></li>
+<li><p><strong>whether_plot_ycalc</strong> (<em>bool</em>) – Whether to plot the calculated PDF data (ycalc). Default is False.</p></li>
+<li><p><strong>plot_variable_names</strong> (<em>list</em><em> of </em><em>str</em>) – The list of variable names to plot during refinement.
+Default is None.</p></li>
+<li><p><strong>plot_result_names</strong> (<em>list</em><em> of </em><em>str</em>) – The list of fit result entries to plot.
+Allowed values: “residual”, “contributions”, “restraints”, “chi2”,
+“reduced_chi2”. Default is None.</p></li>
+<li><p><strong>plot_intermediate_result_names</strong> (<em>list</em><em> of </em><em>str</em>) – The list of intermediate result entries to plot during refinement.
+Allowed values: “residual”, “contributions”, “restraints”, “chi2”,
+“reduced_chi2”. Default is None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>FileNotFoundError</strong> – If the input data directory, output result directory, or structure
+    file does not exist.</p></li>
+<li><p><strong>NotADirectoryError</strong> – If input_data_dir or output_result_dir is not a directory.</p></li>
+<li><p><strong>ValueError</strong> – If a refinable variable name is not found in the recipe, or if a
+    plot result name is not valid.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span> <span class="o">=</span> <span class="n">SequentialCMIRunner</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span><span class="o">.</span><span class="n">load_inputs</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">input_data_dir</span><span class="o">=</span><span class="s2">&quot;./data&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">structure_path</span><span class="o">=</span><span class="s2">&quot;./structure.cif&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">output_result_dir</span><span class="o">=</span><span class="s2">&quot;./results&quot;</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">refinable_variable_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">plot_variable_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">plot_result_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;chi2&quot;</span><span class="p">],</span>
+<span class="gp">... </span>    <span class="n">plot_intermediate_result_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;residual&quot;</span><span class="p">],</span>
+<span class="gp">... </span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'batch'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'stream'</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/sequential_cmi_runner.html#SequentialCMIRunner.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Run the sequential refinement process in either batch or
+streaming mode.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mode</strong> (<em>str</em>) – The mode to run the sequential refinement. Must be either “batch”
+or “stream”. In “batch” mode, the toolset will run through all
+available input files once and then stop. In “stream” mode, the
+runner will continuously monitor the input data directory for new
+files and process them as they appear, until the user decides
+to stop the process.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">set_start_input_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_filename_to_result_filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pdfbl/sequential/sequential_cmi_runner.html#SequentialCMIRunner.set_start_input_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Set the starting input file for sequential refinement and
+continue the interrupted sequential refinement from that point.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_filename</strong> (<em>str</em>) – The name of the input file to start from. This file must be in the
+input data directory.</p></li>
+<li><p><strong>input_filename_to_result_filename</strong> (<em>function</em>) – The function that takes an input filename and returns the
+corresponding result filename. This is used to locate the last
+result file for loading variable values.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../getting-started.html" class="btn btn-neutral float-left" title="Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../release.html" class="btn btn-neutral float-right" title="Release notes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Simon Billinge.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
