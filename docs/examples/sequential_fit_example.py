@@ -1,12 +1,19 @@
+from pathlib import Path
+
 from pdfbl.sequential.sequential_cmi_runner import SequentialCMIRunner
 
 
 def main():
+    working_dir = Path(__file__).parent
+    input_files_folder = working_dir / "input_files"
+    output_folder = working_dir / "results"
+    input_files_folder.mkdir(exist_ok=True)
+    output_folder.mkdir(exist_ok=True)
     sts = SequentialCMIRunner()
     sts.load_inputs(
-        input_data_dir="docs/examples/input_files",
-        structure_path="docs/examples/Ni.cif",
-        output_result_dir="docs/examples/results",
+        input_data_dir=str(input_files_folder),
+        structure_path=str(working_dir / "Ni.cif"),
+        output_result_dir=str(output_folder),
         filename_order_pattern=r"(\d+)K\.gr",
         refinable_variable_names=[
             "a_1",
