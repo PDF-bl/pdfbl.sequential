@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pdfbl.sequential.pdfadapter &mdash; pdfbl.sequential 0.1.0rc1 documentation</title>
+  <title>pdfbl.sequential.pdfadapter &mdash; pdfbl.sequential 0.1.0rc2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
@@ -13,7 +13,7 @@
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=3b45b1b0"></script>
+      <script src="../../../_static/documentation_options.js?v=1bf42b5b"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -344,6 +344,14 @@
 <span class="sd">                - constrain variables of the scatters</span>
 <span class="sd">                - change symmetry constraints</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">modify_xyz_adp_name</span><span class="p">(</span><span class="n">parname</span><span class="p">,</span> <span class="n">nth_phase</span><span class="p">):</span>
+            <span class="n">parname</span><span class="p">,</span> <span class="n">nth_atom</span> <span class="o">=</span> <span class="n">parname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">parname</span><span class="si">}</span><span class="s2">_phase_</span><span class="si">{</span><span class="n">nth_phase</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">_atom_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">nth_atom</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">modify_lat_delta_name</span><span class="p">(</span><span class="n">parname</span><span class="p">,</span> <span class="n">nth_phase</span><span class="p">):</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">parname</span><span class="si">}</span><span class="s2">_phase_</span><span class="si">{</span><span class="n">nth_phase</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span>
+
         <span class="n">recipe</span> <span class="o">=</span> <span class="n">FitRecipe</span><span class="p">()</span>
         <span class="n">recipe</span><span class="o">.</span><span class="n">addContribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contribution</span><span class="p">)</span>
         <span class="n">qdamp</span> <span class="o">=</span> <span class="n">recipe</span><span class="o">.</span><span class="n">newVar</span><span class="p">(</span><span class="s2">&quot;qdamp&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">0.04</span><span class="p">)</span>
@@ -356,7 +364,9 @@
                 <span class="s2">&quot;delta2&quot;</span><span class="p">,</span>
             <span class="p">]:</span>
                 <span class="n">par</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pdfgenerator</span><span class="p">,</span> <span class="n">pname</span><span class="p">)</span>
-                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">pname</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span>
+                    <span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">modify_lat_delta_name</span><span class="p">(</span><span class="n">pname</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdfgenerators</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span>
                     <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contribution</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;s</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">),</span>
@@ -369,11 +379,17 @@
             <span class="n">stru_parset</span> <span class="o">=</span> <span class="n">pdfgenerator</span><span class="o">.</span><span class="n">phase</span>
             <span class="n">spacegroupparams</span> <span class="o">=</span> <span class="n">constrainAsSpaceGroup</span><span class="p">(</span><span class="n">stru_parset</span><span class="p">,</span> <span class="n">spacegroup</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">spacegroupparams</span><span class="o">.</span><span class="n">xyzpars</span><span class="p">:</span>
-                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span>
+                    <span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">modify_xyz_adp_name</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
             <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">spacegroupparams</span><span class="o">.</span><span class="n">latpars</span><span class="p">:</span>
-                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span>
+                    <span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">modify_lat_delta_name</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
             <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">spacegroupparams</span><span class="o">.</span><span class="n">adppars</span><span class="p">:</span>
-                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">par</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span>
+                    <span class="n">par</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">modify_xyz_adp_name</span><span class="p">(</span><span class="n">par</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
         <span class="n">recipe</span><span class="o">.</span><span class="n">addVar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contribution</span><span class="o">.</span><span class="n">s0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;s0&quot;</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">recipe</span><span class="o">.</span><span class="n">fix</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
         <span class="n">recipe</span><span class="o">.</span><span class="n">fithooks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="mi">0</span>
@@ -411,12 +427,18 @@
 <span class="sd">            The residual array.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">residual</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="o">.</span><span class="n">residual</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intermediate_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fitresults</span> <span class="o">=</span> <span class="n">FitResults</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">recipe</span><span class="p">)</span>
-            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">step</span><span class="p">),</span> <span class="n">values</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">intermediate_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iter_count</span> <span class="o">%</span> <span class="n">step</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fitresults</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
-                    <span class="n">values</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">fitresults_dict</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">step</span><span class="p">),</span> <span class="n">values</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">intermediate_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iter_count</span> <span class="o">%</span> <span class="n">step</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fitresults_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">fitresults_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;dict&quot;</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">fitresults_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is not found in the fit results. &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;Available keys are: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">fitresults_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">values</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iter_count</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">residual</span></div>
 

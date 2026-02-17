@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>pdfbl.sequential.sequential_cmi_runner &mdash; pdfbl.sequential 0.1.0rc1 documentation</title>
+  <title>pdfbl.sequential.sequential_cmi_runner &mdash; pdfbl.sequential 0.1.0rc2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
       <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
@@ -13,7 +13,7 @@
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=3b45b1b0"></script>
+      <script src="../../../_static/documentation_options.js?v=1bf42b5b"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -85,7 +85,6 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">bg_mpl_stylesheets.styles</span><span class="w"> </span><span class="kn">import</span> <span class="n">all_styles</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">diffpy.srfit.fitbase</span><span class="w"> </span><span class="kn">import</span> <span class="n">FitResults</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">PromptSession</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">prompt_toolkit.patch_stdout</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch_stdout</span>
@@ -560,8 +559,8 @@
                     <span class="n">new_value</span>
                 <span class="p">)</span>
             <span class="k">for</span> <span class="n">entry_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">visualization_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">,</span> <span class="p">{}):</span>
-                <span class="n">fit_results</span> <span class="o">=</span> <span class="n">FitResults</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">adapter</span><span class="o">.</span><span class="n">recipe</span><span class="p">)</span>
-                <span class="n">entry_value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fit_results</span><span class="p">,</span> <span class="n">entry_name</span><span class="p">)</span>
+                <span class="n">fitresults_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">adapter</span><span class="o">.</span><span class="n">save_results</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;dict&quot;</span><span class="p">)</span>
+                <span class="n">entry_value</span> <span class="o">=</span> <span class="n">fitresults_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry_name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">visualization_data</span><span class="p">[</span><span class="s2">&quot;results&quot;</span><span class="p">][</span><span class="n">entry_name</span><span class="p">][</span><span class="s2">&quot;ydata&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
                     <span class="n">entry_value</span>
                 <span class="p">)</span>
