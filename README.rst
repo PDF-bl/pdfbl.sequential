@@ -68,16 +68,19 @@ The following creates and activates a new environment named ``pdfbl.sequential_e
 
 The output should print the latest version displayed on the badges above.
 
-If the above does not work, you can use ``pip`` to download and install the latest release from
-`Python Package Index <https://pypi.python.org>`_.
-To install using ``pip`` into your ``pdfbl.sequential_env`` environment, type ::
+You can also use ``pip`` to download and install the latest release from
+`Python Package Index <https://pypi.python.org>`_ in your environment.
+But you would still need to install the dependency ``diffpy.cmi`` using
+``conda`` first ::
 
+        conda install diffpy.cmi
         pip install pdfbl.sequential
 
 If you prefer to install from sources, after installing the dependencies, obtain the source archive from
 `GitHub <https://github.com/pdf-bl/pdfbl.sequential/>`_. Once installed, ``cd`` into your ``pdfbl.sequential`` directory
 and run the following ::
 
+        conda install diffpy.cmi
         pip install .
 
 This package also provides command-line utilities. To check the software has been installed correctly, type ::
