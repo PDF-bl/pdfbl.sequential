@@ -170,7 +170,7 @@ class DiffpyInterpreter:
 if __name__ == "__main__":
     interpreter = DiffpyInterpreter()
     code = f"""
-load structure G1 from "{str(Path(__file__).parents[3] /"tests/data/Ni.cif")}"
+load structure G1 from "{str(Path(__file__).parents[3] / "tests/data/Ni.cif")}"
 load profile exp_ni from "{str(Path(__file__).parents[3] / "tests/data/Ni.gr")}"
 
 set G1 spacegroup as auto
