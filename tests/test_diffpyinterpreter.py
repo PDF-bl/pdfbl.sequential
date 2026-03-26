@@ -4,10 +4,10 @@ import numpy
 from helper import make_cmi_recipe
 from scipy.optimize import least_squares
 
-from pdfbl.sequential.pdfadapter import PDFAdapter
+from pdfbl.sequential.diffpy_interpreter import DiffpyInterpreter
 
 
-def test_pdfadapter():
+def test_meta_model():
     # C1: Run the same fit with pdfadapter and diffpy_cmi
     #   Expect the refined parameters to be the same within 1e-5
     # diffpy_cmi fitting
@@ -32,9 +32,13 @@ def test_pdfadapter():
     diffpycmi_recipe = make_cmi_recipe(
         str(structure_path), str(profile_path), initial_pv_dict
     )
+    structure_path = Path(__file__).parent / "data" / "Ni.cif"
+    profile_path = Path(__file__).parent / "data" / "Ni.gr"
+    diffpycmi_recipe = make_cmi_recipe(
+        str(structure_path), str(profile_path), initial_pv_dict
+    )
     diffpycmi_recipe.fithooks[0].verbose = 0
     diffpycmi_recipe.fix("all")
-
     for var_name in variables_to_refine:
         diffpycmi_recipe.free(var_name)
         least_squares(
@@ -45,24 +49,32 @@ def test_pdfadapter():
     diffpy_pv_dict = {}
     for pname, parameter in diffpycmi_recipe._parameters.items():
         diffpy_pv_dict[pname] = parameter.value
-    # pdfadapter fitting
-    adapter = PDFAdapter()
-    adapter.initialize_profile(
-        str(profile_path), q_range=(0.1, 25), calculation_range=(1.5, 50, 0.01)
-    )
-    adapter.initialize_structures([str(structure_path)])
-    adapter.initialize_contribution(equation_string="s0*G1")
-    adapter.initialize_recipe()
-    adapter.recipe.addVar(list(adapter.recipe._contributions.values())[0].s0)
-    adapter.set_initial_variable_values(initial_pv_dict)
-    adapter.recipe.fix("all")
-    for var in variables_to_refine:
-        adapter.recipe.free(var)
-        least_squares(adapter.recipe.residual, adapter.recipe.values)
-    pdfadapter_pv_dict = {}
-    for pname, parameter in adapter.recipe._parameters.items():
-        pdfadapter_pv_dict[pname] = parameter.value
+
+    diffpy_dsl = f"""
+load structure G1 from "{str(structure_path)}"
+load profile exp_ni from "{str(profile_path)}"
+
+set G1 spacegroup as auto
+set exp_ni q_range as 0.1 25
+set exp_ni calculation_range as 1.5 50 0.01
+create equation variables s0
+set equation as "s0*G1"
+
+variables:
+---
+- G1_a: 3.52
+- s0: 0.4
+- G1_Uiso_0: 0.005
+- G1_delta2: 2
+- qdamp: 0.04
+- qbroad: 0.02
+---
+"""
+    diffpy_interpreter = DiffpyInterpreter()
+    diffpy_interpreter.interpret(diffpy_dsl)
+    diffpy_interpreter.configure_adapter()
+    interpreter_results = diffpy_interpreter.run()
     for var_name in variables_to_refine:
-        pdfadapter_value = pdfadapter_pv_dict[var_name]
         diffpy_value = diffpy_pv_dict[var_name]
-        assert numpy.isclose(diffpy_value, pdfadapter_value, atol=1e-5)
+        interpreter_value = interpreter_results["variables"][var_name]["value"]
+        assert numpy.isclose(diffpy_value, interpreter_value, atol=1e-5)

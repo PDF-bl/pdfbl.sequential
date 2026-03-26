@@ -29,9 +29,9 @@ def make_cmi_recipe(cif_path, dat_path, variable_values={}):
     QMAX = variable_values.get("qmax", 25)
     QMIN = variable_values.get("qmin", 0.1)
     SCALE_I = variable_values.get("s0", 0.4)
-    CUBICLAT_I = variable_values.get("a_phase_1", 3.52)
-    UISO_I = variable_values.get("Uiso_phase_1_atom_1", 0.005)
-    DELTA2_I = variable_values.get("delta2_phase_1", 2)
+    CUBICLAT_I = variable_values.get("G1_a", 3.52)
+    UISO_I = variable_values.get("G1_Uiso_0", 0.005)
+    DELTA2_I = variable_values.get("G1_delta2", 2)
     QDAMP_I = variable_values.get("qdamp", 0.04)
     QBROAD_I = variable_values.get("qbroad", 0.02)
     RUN_PARALLEL = True
@@ -80,12 +80,10 @@ def make_cmi_recipe(cif_path, dat_path, variable_values={}):
     recipe.addVar(contribution.s0, SCALE_I, name="s0")
     spacegroupparams = constrainAsSpaceGroup(generator_crystal1.phase, sg)
     for par in spacegroupparams.latpars:
-        recipe.addVar(par, value=CUBICLAT_I, fixed=False, name="a_phase_1")
+        recipe.addVar(par, value=CUBICLAT_I, fixed=False, name="G1_a")
     for par in spacegroupparams.adppars:
-        recipe.addVar(
-            par, value=UISO_I, fixed=False, name="Uiso_phase_1_atom_1"
-        )
-    recipe.addVar(generator_crystal1.delta2, name="delta2_phase_1")
+        recipe.addVar(par, value=UISO_I, fixed=False, name="G1_Uiso_0")
+    recipe.addVar(generator_crystal1.delta2, name="G1_delta2")
     recipe.addVar(
         generator_crystal1.qdamp,
         fixed=False,
