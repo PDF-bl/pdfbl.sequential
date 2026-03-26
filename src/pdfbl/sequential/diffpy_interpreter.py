@@ -79,7 +79,8 @@ class DiffpyInterpreter:
         source_path = Path(command.source)
         if not source_path.exists():
             raise FileNotFoundError(
-                f"{command.component} {source_path} not found."
+                f"{command.component} {source_path} not found. "
+                "Please ensure the path is correct and the file exists."
             )
         self.inputs[source_entry] = str(source_path)
         setattr(self, attribute_name, command.name)
@@ -110,7 +111,10 @@ class DiffpyInterpreter:
         variables = yaml.safe_load(variable_block.content)
         if not isinstance(variables, list):
             raise ValueError(
-                "Variables block should contain a list of variables."
+                "Variables block should contain a list of variables. "
+                "Please use the following format:\n"
+                "- var1  # use default initial value\n"
+                "- var2: initial_value\n"
             )
         for item in variables:
             if isinstance(item, str):
@@ -121,8 +125,10 @@ class DiffpyInterpreter:
                 self.inputs["initial_values"][pname.replace(".", "_")] = pvalue
             else:
                 raise ValueError(
-                    "Each variable should be either a string or a dictionary "
-                    "with a single key-value pair."
+                    "Variables block items are not correctly formatted. "
+                    "Please use the following format:\n"
+                    "- var1  # use default initial value\n"
+                    "- var2: initial_value\n"
                 )
 
     def create_command_processor(self, command):
