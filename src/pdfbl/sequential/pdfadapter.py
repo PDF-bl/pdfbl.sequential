@@ -1,9 +1,5 @@
-import json
-import tempfile
 import warnings
 from pathlib import Path
-from queue import Queue
-from typing import Literal
 
 import numpy
 from diffpy.srfit.fitbase import (
@@ -15,7 +11,6 @@ from diffpy.srfit.fitbase import (
 from diffpy.srfit.pdf import PDFGenerator, PDFParser
 from diffpy.srfit.structure import constrainAsSpaceGroup
 from diffpy.structure.parsers import getParser
-from scipy.optimize import least_squares
 
 
 class PDFAdapter:
@@ -50,36 +45,11 @@ class PDFAdapter:
         Save the fitting results.
     """  # noqa: E501
 
-    def __init__(self):
-        self.intermediate_results = {}
-        self.iter_count = 0
-
-    def monitor_intermediate_results(
-        self, key: str, step: int = 10, queue: Queue = None
-    ):
-        """Store an intermediate result during the fitting process.
-
-        Parameters
-        ----------
-        key : str
-            The key to identify the intermediate result.
-        step : int
-            The step interval to store the intermediate result.
-        queue : Queue
-            The queue to store the intermediate results.
-        """
-        if queue is None:
-            queue = Queue()
-        self.intermediate_results[(key, step)] = queue
-
     def initialize_profile(
         self,
         profile_path: str,
-        qmin=None,
-        qmax=None,
-        xmin=None,
-        xmax=None,
-        dx=None,
+        q_range=None,
+        calculation_range=None,
     ):
         """Load and initialize the PDF profile from the given file path
         with some optional parameters.
@@ -92,35 +62,36 @@ class PDFAdapter:
         ----------
         profile_path : str
             The path to the experimental PDF profile file.
-        qmin : float
-            The minimum Q value for PDF calculation. The default value is
-            the one parsed from the profile file.
-        qmax : float
-            The maximum Q value for PDF calculation. The default value is the
-            one parsed from the profile file.
-        xmin : float
-            The minimum r value for PDF calculation. The default value is the
-            one parsed from the profile file.
-        xmax : float
-            The maximum r value for PDF calculation. The default value is the
-            one parsed from the profile file.
-        dx : float
-            The r step size for PDF calculation. The default value is the
-            one parsed from the profile file.
+        q_range: list or tuple of two floats.
+            The qmin and qmax for PDF calculation. The default value is None,
+            which means using the values parsed from the profile file.
+        calculation_range : list or tuple of three floats.
+            The rmin, rmax, and r step for PDF calculation. The default value
+            is None, which means using the range parsed from the profile file.
         """
         profile = Profile()
         parser = PDFParser()
         parser.parseString(Path(profile_path).read_text())
         profile.loadParsedData(parser)
-        if qmin:
-            profile.meta["qmin"] = qmin
-        if qmax:
-            profile.meta["qmax"] = qmax
-        profile.setCalculationRange(xmin=xmin, xmax=xmax, dx=dx)
+        if q_range is not None:
+            profile.meta["qmin"] = q_range[0]
+            profile.meta["qmax"] = q_range[1]
+        if calculation_range is not None:
+            if isinstance(calculation_range, (list, tuple)):
+                calculation_range = {
+                    "xmin": calculation_range[0],
+                    "xmax": calculation_range[1],
+                    "dx": calculation_range[2],
+                }
+            profile.setCalculationRange(**calculation_range)
         self.profile = profile
 
     def initialize_structures(
-        self, structure_paths: list[str], run_parallel=True
+        self,
+        structure_paths: list[str],
+        run_parallel=True,
+        spacegroups=None,
+        names=None,
     ):
         """Load and initialize the structures from the given file paths,
         and generate corresponding PDFGenerator objects.
@@ -135,6 +106,14 @@ class PDFAdapter:
         ----------
         structure_paths : list of str
             The list of paths to the structure files (CIF format).
+        run_parallel : bool
+        spacegroups : list of str or None
+            The space group for each structure. If None, the space group will
+            be determined automatically from the structure file. The default is
+            None.
+        names: list of str or None
+            The names for each structure. If None, default names "G1", "G2",
+            ... will be assigned. The default is None.
 
         Notes
         -----
@@ -170,13 +149,14 @@ class PDFAdapter:
                 )
                 run_parallel = False
         for i, structure_path in enumerate(structure_paths):
+            name = names[i] if names and i < len(names) else f"G{i+1}"
             stru_parser = getParser("cif")
             structure = stru_parser.parse(Path(structure_path).read_text())
             sg = getattr(stru_parser, "spacegroup", None)
             spacegroup = sg.short_name if sg is not None else "P1"
             structures.append(structure)
             spacegroups.append(spacegroup)
-            pdfgenerator = PDFGenerator(f"G{i+1}")
+            pdfgenerator = PDFGenerator(name)
             pdfgenerator.setStructure(structure)
             if run_parallel:
                 pdfgenerator.parallel(ncpu=ncpu, mapfunc=self.pool.map)
@@ -215,19 +195,6 @@ class PDFAdapter:
         contribution.setProfile(self.profile)
         for pdfgenerator in self.pdfgenerators:
             contribution.addProfileGenerator(pdfgenerator)
-        number_of_phase = len(self.pdfgenerators)
-        if equation_string is None:
-            if number_of_phase == 1:
-                equation_string = "s0*G1"
-            else:
-                equation_string = (
-                    "s0*("
-                    + "+".join(
-                        [f"s{i+1}*G{i+1}" for i in range(number_of_phase - 1)]
-                    )
-                    + f"+(1-({'+'.join([f's{i+1}' for i in range(1, number_of_phase)])}))*G{number_of_phase}"  # noqa: E501
-                    + ")"
-                )
         contribution.setEquation(equation_string)
         self.contribution = contribution
         return self.contribution
@@ -242,6 +209,9 @@ class PDFAdapter:
         method creates the FitRecipe object combining the profile, PDF
         generators, and contribution.
 
+        Except delta1, delta2, qdamp, qbroad, and the spacegroup parameters,
+        other parameters are not added to the recipe by default.
+
         Must be called after initialize_contribution.
 
         Notes
@@ -252,13 +222,6 @@ class PDFAdapter:
                 - constrain variables of the scatters
                 - change symmetry constraints
         """
-
-        def modify_xyz_adp_name(parname, nth_phase):
-            parname, nth_atom = parname.split("_")
-            return f"{parname}_phase_{nth_phase+1}_atom_{int(nth_atom)+1}"
-
-        def modify_lat_delta_name(parname, nth_phase):
-            return f"{parname}_phase_{nth_phase+1}"
 
         recipe = FitRecipe()
         recipe.addContribution(self.contribution)
@@ -273,33 +236,24 @@ class PDFAdapter:
             ]:
                 par = getattr(pdfgenerator, pname)
                 recipe.addVar(
-                    par, name=modify_lat_delta_name(pname, i), fixed=False
+                    par, name=f"{pdfgenerator.name}_{pname}", fixed=False
                 )
-            if len(self.pdfgenerators) > 1:
-                recipe.addVar(
-                    getattr(self.contribution, f"s{i+1}"),
-                    name=f"s{i+1}",
-                    fixed=False,
-                )
-                recipe.restrain(f"s{i+1}", lb=0.0, ub=1.0)
             recipe.constrain(pdfgenerator.qdamp, qdamp)
             recipe.constrain(pdfgenerator.qbroad, qbroad)
             stru_parset = pdfgenerator.phase
             spacegroupparams = constrainAsSpaceGroup(stru_parset, spacegroup)
             for par in spacegroupparams.xyzpars:
                 recipe.addVar(
-                    par, name=modify_xyz_adp_name(par.name, i), fixed=False
+                    par, name=f"{pdfgenerator.name}_{par.name}", fixed=False
                 )
             for par in spacegroupparams.latpars:
                 recipe.addVar(
-                    par, name=modify_lat_delta_name(par.name, i), fixed=False
+                    par, name=f"{pdfgenerator.name}_{par.name}", fixed=False
                 )
             for par in spacegroupparams.adppars:
                 recipe.addVar(
-                    par, name=modify_xyz_adp_name(par.name, i), fixed=False
+                    par, name=f"{pdfgenerator.name}_{par.name}", fixed=False
                 )
-        recipe.addVar(self.contribution.s0, name="s0", fixed=False)
-        recipe.fix("all")
         recipe.fithooks[0].verbose = 0
         self.recipe = recipe
 
@@ -314,157 +268,60 @@ class PDFAdapter:
         for vname, vvalue in variable_name_to_value.items():
             self.recipe._parameters[vname].setValue(vvalue)
 
-    def residual(self, p=[]):
-        """Wrapper for the recipe residual function to store
-        intermediate results if needed.
-
-        Parameters
-        ----------
-        p : list
-            List of parameter values.
-
-        Returns
-        -------
-        numpy.ndarray
-            The residual array.
-        """
-        residual = self.recipe.residual(p)
-        fitresults_dict = None
-        for (key, step), values in self.intermediate_results.items():
-            if (self.iter_count % step) == 0:
-                if fitresults_dict is None:
-                    fitresults_dict = self.save_results(mode="dict")
-                value = fitresults_dict.get(key, None)
-                if value is None:
-                    raise KeyError(
-                        f"{key} is not found in the fit results. "
-                        f"Available keys are: {list(fitresults_dict.keys())}"
-                    )
-                values.put(value)
-        self.iter_count += 1
-        return residual
-
-    def refine_variables(self, variable_names: list[str]):
-        """Refine the parameters specified in the list and in that
-        order. Must be called after initialize_recipe.
-
-        Parameters
-        ----------
-        variable_names : list of str
-            The names of the variables to refine.
-        """
-        for vname in variable_names:
-            if vname not in self.recipe._parameters:
-                raise ValueError(
-                    f"Variable {vname} not found in the recipe. "
-                    "Please choose from the existing variables: "
-                    f"{list(self.recipe._parameters.keys())}"
-                )
-        for vname in variable_names:
-            self.recipe.free(vname)
-            least_squares(
-                self.residual,
-                self.recipe.values,
-                x_scale="jac",
-            )
-
-    def get_variable_names(self) -> list[str]:
-        """Get the names of all variables in the recipe.
-
-        Returns
-        -------
-        list of str
-            A list of variable names.
-        """
-        return list(self.recipe._parameters.keys())
-
-    def save_results(
-        self, mode: Literal["str", "dict"] = "str", filename=None
-    ):
+    def get_results(self):
         """Save the fitting results. Must be called after
         refine_variables.
 
-        Parameters
-        ----------
-        mode : str
-            The format to save the results. Options are:
-                "str" - Save results as a formatted text string.
-                "dict" - Save results as a JSON-compatible dictionary.
-        filename : str
-            The path to the output file. If None, results will not be saved to
-            a file.
-
         Returns
         -------
-        str or dict
-            The fitting results in the specified format.
+        dict
+            The fitting results in a JSON-compatible dictionary format.
         """
         fit_results = FitResults(self.recipe)
-        if mode == "str":
-            if filename is None:
-                tmp_directory = tempfile.TemporaryDirectory()
-                temp_file = Path(tmp_directory.name) / "data.txt"
-                filename = str(temp_file)
-            fit_results.saveResults(filename)
-            with open(filename, "r") as f:
-                results_str = f.read()
-            if filename is None:
-                tmp_directory.cleanup()
-            return results_str
-
-        elif mode == "dict":
-            results_dict = {}
-            results_dict["residual"] = fit_results.residual
-            results_dict["contributions"] = (
-                fit_results.residual - fit_results.penalty
-            )
-            results_dict["restraints"] = fit_results.penalty
-            results_dict["chi2"] = fit_results.chi2
-            results_dict["reduced_chi2"] = fit_results.rchi2
-            results_dict["rw"] = fit_results.rw
-            # variables
-            results_dict["variables"] = {}
-            for name, val, unc in zip(
-                fit_results.varnames, fit_results.varvals, fit_results.varunc
+        results_dict = {}
+        results_dict["residual"] = fit_results.residual
+        results_dict["contributions"] = (
+            fit_results.residual - fit_results.penalty
+        )
+        results_dict["restraints"] = fit_results.penalty
+        results_dict["chi2"] = fit_results.chi2
+        results_dict["reduced_chi2"] = fit_results.rchi2
+        results_dict["rw"] = fit_results.rw
+        # variables
+        results_dict["variables"] = {}
+        for name, val, unc in zip(
+            fit_results.varnames, fit_results.varvals, fit_results.varunc
+        ):
+            results_dict["variables"][name] = {
+                "value": val,
+                "uncertainty": unc,
+            }
+        # fixed variables
+        results_dict["fixed_variables"] = {}
+        if fit_results.fixednames is not None:
+            for name, val in zip(
+                fit_results.fixednames, fit_results.fixedvals
             ):
-                results_dict["variables"][name] = {
-                    "value": val,
-                    "uncertainty": unc,
-                }
-            # fixed variables
-            results_dict["fixed_variables"] = {}
-            if fit_results.fixednames is not None:
-                for name, val in zip(
-                    fit_results.fixednames, fit_results.fixedvals
-                ):
-                    results_dict["fixed_variables"][name] = {"value": val}
-            # constraints
-            results_dict["constraints"] = {}
-            if fit_results.connames and fit_results.showcon:
-                for con in fit_results.conresults.values():
-                    for i, loc in enumerate(con.conlocs):
-                        names = [obj.name for obj in loc]
-                        name = ".".join(names)
-                        val = con.convals[i]
-                        unc = con.conuncs[i]
-                        results_dict["constraints"][name] = {
-                            "value": val,
-                            "uncertainty": unc,
-                        }
-            # covariance matrix
-            results_dict["covariance_matrix"] = fit_results.cov.tolist()
-            # certainty
-            certain = True
+                results_dict["fixed_variables"][name] = {"value": val}
+        # constraints
+        results_dict["constraints"] = {}
+        if fit_results.connames and fit_results.showcon:
             for con in fit_results.conresults.values():
-                if (con.dy == 1).all():
-                    certain = False
-            results_dict["certain"] = certain
-            if filename is not None:
-                with open(filename, "w") as f:
-                    json.dump(results_dict, f, indent=2)
-            return results_dict
-
-        else:
-            raise ValueError(
-                f"Unsupported mode: {mode}. Please use 'json' or 'txt'."
-            )
+                for i, loc in enumerate(con.conlocs):
+                    names = [obj.name for obj in loc]
+                    name = ".".join(names)
+                    val = con.convals[i]
+                    unc = con.conuncs[i]
+                    results_dict["constraints"][name] = {
+                        "value": val,
+                        "uncertainty": unc,
+                    }
+        # covariance matrix
+        results_dict["covariance_matrix"] = fit_results.cov.tolist()
+        # certainty
+        certain = True
+        for con in fit_results.conresults.values():
+            if (con.dy == 1).all():
+                certain = False
+        results_dict["certain"] = certain
+        return results_dict
