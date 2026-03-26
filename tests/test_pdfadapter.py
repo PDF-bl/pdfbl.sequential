@@ -48,7 +48,7 @@ def test_pdfadapter():
     # pdfadapter fitting
     adapter = PDFAdapter()
     adapter.initialize_profile(
-        str(profile_path), qmax=25, qmin=0.1, calculation_range=(1.5, 50, 0.01)
+        str(profile_path), q_range=(0.1, 25), calculation_range=(1.5, 50, 0.01)
     )
     adapter.initialize_structures([str(structure_path)])
     adapter.initialize_contribution(equation_string="s0*G1")
