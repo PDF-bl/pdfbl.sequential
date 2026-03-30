@@ -31,7 +31,7 @@ CreateCommand:
 ;
 
 SaveCommand:
-    'save to' source=STRING
+    'save' 'to' source=STRING
 ;
 
 VariableBlock:
@@ -188,7 +188,7 @@ class DiffpyInterpreter:
         dpin_path = Path(args.input_file)
         if not dpin_path.exists():
             raise FileNotFoundError(
-                f"{str(dpin_path)} not Found. Please check if this file "
+                f"{str(dpin_path)} not found. Please check if this file "
                 "exists and provide the correct path to it."
             )
         dsl_code = dpin_path.read_text()
