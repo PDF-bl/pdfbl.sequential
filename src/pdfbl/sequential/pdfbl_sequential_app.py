@@ -1,6 +1,7 @@
 import argparse
 
 from pdfbl.sequential import __version__
+from pdfbl.sequential.diffpy_interpreter import DiffpyInterpreter
 
 
 def main():
@@ -9,6 +10,7 @@ def main():
     Examples
     --------
     >>> pdfbl-cli --version
+    >>> pdfbl-cli run input.dp-in
     """
     parser = argparse.ArgumentParser(
         description=(
@@ -22,4 +24,10 @@ def main():
         version=f"pdfbl.sequential {__version__}",
         help="Show the version of pdfbl.sequential and exit.",
     )
-    parser.parse_args()
+    subparsers = parser.add_subparsers(dest="subcommand")
+    run_parser = subparsers.add_parser("run")
+    run_parser.add_argument("input_file", help="Input .dp-in file.")
+    run_parser.set_defaults(func=DiffpyInterpreter().run_app)
+    args = parser.parse_args()
+    if hasattr(args, "func"):
+        args.func(args)
