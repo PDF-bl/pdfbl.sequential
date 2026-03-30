@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import yaml
@@ -13,7 +14,7 @@ Program:
 ;
 
 Command:
-    LoadCommand | SetCommand | CreateCommand
+    LoadCommand | SetCommand | CreateCommand | SaveCommand
 ;
 
 LoadCommand:
@@ -27,6 +28,10 @@ SetCommand:
 
 CreateCommand:
     'create' 'equation' 'variables' value+=Value[eolterm]
+;
+
+SaveCommand:
+    'save' 'to' source=STRING
 ;
 
 VariableBlock:
@@ -53,6 +58,7 @@ class DiffpyInterpreter:
                 "LoadCommand": self.load_command_processor,
                 "VariableBlock": self.variable_block_processor,
                 "CreateCommand": self.create_command_processor,
+                "SaveCommand": self.save_command_processor,
             }
         )
         self.inputs = {}
@@ -136,6 +142,9 @@ class DiffpyInterpreter:
             v for v in command.value if isinstance(v, str)
         ]
 
+    def save_command_processor(self, command):
+        self.inputs["result_path"] = command.source
+
     def configure_adapter(self):
         self.pdfadapter.initialize_profile(
             self.inputs["profile_path"], **self.inputs["profiles_config"]
@@ -170,7 +179,22 @@ class DiffpyInterpreter:
             least_squares(
                 self.pdfadapter.recipe.residual, self.pdfadapter.recipe.values
             )
+        if "result_path" in self.inputs:
+            with open(self.inputs["result_path"], "w") as f:
+                json.dump(self.pdfadapter.get_results(), f, indent=4)
         return self.pdfadapter.get_results()
+
+    def run_app(self, args):
+        dpin_path = Path(args.input_file)
+        if not dpin_path.exists():
+            raise FileNotFoundError(
+                f"{str(dpin_path)} not found. Please check if this file "
+                "exists and provide the correct path to it."
+            )
+        dsl_code = dpin_path.read_text()
+        self.interpret(dsl_code)
+        self.configure_adapter()
+        self.run()
 
 
 if __name__ == "__main__":
@@ -184,13 +208,14 @@ set exp_ni q_range as 0.1 25
 set exp_ni calculation_range as 1.5 50 0.01
 create equation variables s0
 set equation as "s0*G1"
+save to "results.json"
 
 variables:
 ---
-- G1_a: 3.52
+- G1.a: 3.52
 - s0: 0.4
-- G1_Uiso_0: 0.005
-- G1_delta2: 2
+- G1.Uiso_0: 0.005
+- G1.delta2: 2
 - qdamp: 0.04
 - qbroad: 0.02
 ---
