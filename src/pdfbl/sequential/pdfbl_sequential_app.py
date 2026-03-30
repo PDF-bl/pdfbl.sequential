@@ -9,8 +9,8 @@ def main():
 
     Examples
     --------
-    >>> pdfbl-cli --version
-    >>> pdfbl-cli run input.dp-in
+    >>> pdfbl --version
+    >>> pdfbl run input.dp-in
     """
     parser = argparse.ArgumentParser(
         description=(
@@ -21,8 +21,8 @@ def main():
     parser.add_argument(
         "--version",
         action="version",
-        version=f"pdfbl.sequential {__version__}",
-        help="Show the version of pdfbl.sequential and exit.",
+        version=f"pdfbl {__version__}",
+        help="Show the version of pdfbl and exit.",
     )
     subparsers = parser.add_subparsers(dest="subcommand")
     run_parser = subparsers.add_parser("run")
